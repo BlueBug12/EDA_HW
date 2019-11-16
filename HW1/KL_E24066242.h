@@ -18,7 +18,8 @@ public:
   void read_file(char* benchmark);
   int find_pair_to_swap(Node** n0 , Node** n1);
   void lock_pair(std::list<Node*>::iterator iter0,std::list<Node*>::iterator iter1);
-  void update_Dvalue(Node*n0,Node*n1,bool temp);
+  void update_temp_Dvalue(Node* n0,Node* n1);
+  void update_Dvalue(Node*n0,Node*n1);
   bool max_cost();
   void update_temp();
   void check();

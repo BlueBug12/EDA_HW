@@ -9,8 +9,7 @@ struct Node{
   map<Node*,string>all_edges;
   int external;
   int internal;
-  int temp_external;
-  int temp_internal;
+  int d_value;
 };
 
 KL::KL(char* benchmark){
@@ -40,9 +39,7 @@ void KL::read_file(char* benchmark){
     Node* n = new Node;
     n->name = str;
     n->external = 0;
-    n->temp_external = 0;
     n->internal = 0;
-    n->temp_internal = 0;
 
     if(counter<numnodes/2){
       n->group = 0;//first group(first half)
@@ -72,12 +69,12 @@ void KL::read_file(char* benchmark){
     n2->all_edges[n1]=str;
 
     if(n2->group==n1->group){
-      ++(n1->internal); ++(n1->temp_internal);
-      ++(n2->internal); ++(n2->temp_internal);
+      ++(n1->internal);
+      ++(n2->internal);
     }
     else{
-      ++(n1->external); ++(n1->temp_external);
-      ++(n2->external); ++(n2->temp_external);
+      ++(n1->external);
+      ++(n2->external);
       ++cost;
     }
   }
@@ -90,18 +87,17 @@ int KL::find_pair_to_swap(Node**n0,Node**n1){
   for(auto iter0=temp_group0.begin();iter0!=temp_group0.end();++iter0){
     //cout<<iter0->second->name<<endl;
     for(auto iter1=temp_group1.begin();iter1!=temp_group1.end();++iter1){
+      (*iter0)->d_value=(*iter0)->external-(*iter0)->internal;
+      (*iter1)->d_value=(*iter1)->external-(*iter1)->internal;
 
-      int g = (*iter0)->temp_external+(*iter1)->temp_external
-             -(*iter0)->temp_internal-(*iter1)->temp_internal;//Da + Db
+      int g = (*iter0)->d_value+(*iter1)->d_value;
+
       if((*iter0)->all_edges.find(*iter1)!=(*iter0)->all_edges.end()){
         g-=2;//if two nodes are connected
       }
-
       if(g>max_cost){
         swapped_iter0 = iter0;
         swapped_iter1 = iter1;
-        //cout<<(*swapped_iter0)->name;
-        //cout<<n1->name<<' '<<n0->name<<' '<<g<<endl;
         max_cost=g;
       }
     }
@@ -109,48 +105,81 @@ int KL::find_pair_to_swap(Node**n0,Node**n1){
   *n0=*swapped_iter0;
   *n1=*swapped_iter1;
   cout<<"swap "<<(*n0)->name<<" and "<<(*n1)->name<<endl;
-  lock_pair(swapped_iter0,swapped_iter1);//actually just erase the swapped nodes in temp_gruop list
+  update_Dvalue(*n0,*n1);
+  temp_group0.erase(swapped_iter0);
+  temp_group1.erase(swapped_iter1);
+  //lock_pair(swapped_iter0,swapped_iter1);//actually just erase the swapped nodes in temp_gruop list
   return max_cost;
 }
 
 void KL::lock_pair(list<Node*>::iterator iter0,list<Node*>::iterator iter1){
-  update_Dvalue(*iter0,*iter1,1);
+  update_temp_Dvalue(*iter0,*iter1);
   temp_group0.erase(iter0);
   temp_group1.erase(iter1);
 }
-
-void KL::update_Dvalue(Node*target,Node*pair,bool temp){
-
-  if(temp){
-    swap(target->temp_external,target->temp_internal);
-    for(auto iter=target->all_edges.begin();iter!=target->all_edges.end();++iter){
-      if(iter->first==pair){continue;}
-      if(iter->first->temp_group==target->temp_group){
-        ++(iter->first->temp_external);
-        --(iter->first->temp_internal);
-      }
-      else{
-        --(iter->first->temp_external);
-        ++(iter->first->temp_internal);
-      }
+void KL::update_temp_Dvalue(Node*n0,Node*n1){
+  n0->d_value=-n0->d_value;
+  n1->d_value=-n1->d_value;
+  for(auto iter=n0->all_edges.begin();iter!=n0->all_edges.end();++iter){
+    if(iter->first==n1){n0->d_value+=2;continue;}
+    if(iter->first->temp_group==n0->temp_group){
+      iter->first->d_value+=2;
     }
-    target->temp_group=!(target->temp_group);
-  }
-  else{
-    swap(target->external,target->internal);
-    for(auto iter=target->all_edges.begin();iter!=target->all_edges.end();++iter){
-      if(iter->first==pair){continue;}
-      if(iter->first->group==target->group){
-        ++(iter->first->external);
-        --(iter->first->internal);
-      }
-      else{
-        --(iter->first->external);
-        ++(iter->first->internal);
-      }
+    else{
+      iter->first->d_value-=2;
     }
-    target->group=!(target->group);
   }
+  for(auto iter=n1->all_edges.begin();iter!=n1->all_edges.end();++iter){
+    if(iter->first==n0){n1->d_value+=2;continue;}
+    if(iter->first->temp_group==n1->temp_group){
+      iter->first->d_value+=2;
+    }
+    else{
+      iter->first->d_value-=2;
+    }
+  }
+n0->temp_group=!(n0->temp_group);
+n1->temp_group=!(n1->temp_group);
+}
+
+void KL::update_Dvalue(Node*n0,Node*n1){
+  swap(n0->external,n0->internal);
+  swap(n1->external,n1->internal);
+
+  for(auto iter=n0->all_edges.begin();iter!=n0->all_edges.end();++iter){
+    Node* n=iter->first;
+    if(n==n1){
+      n0->external+=1;
+      n0->internal-=1;
+      continue;
+    }
+    if(n->group==n0->group){
+      ++n->external;
+      --n->internal;
+    }
+    else{
+      --n->external;
+      ++n->internal;
+    }
+  }
+  for(auto iter=n1->all_edges.begin();iter!=n1->all_edges.end();++iter){
+    Node* n=iter->first;
+    if(n==n0){
+      n1->external+=1;
+      n1->internal-=1;
+      continue;
+    }
+    if(n->group==n1->group){
+      ++n->external;
+      --n->internal;
+    }
+    else{
+      --n->external;
+      ++n->internal;
+    }
+  }
+  n0->group=!(n0->group);
+  n1->group=!(n1->group);
 }
 
 bool KL::max_cost(){
@@ -183,7 +212,7 @@ bool KL::max_cost(){
     for(int i=0;i<index;++i){
       //cout<<candidates.at(i).first<<endl;
       cout<<"actually swap: "<<candidates.at(i).first->name<<' '<<candidates.at(i).second->name<<endl;
-      update_Dvalue(candidates.at(i).first,candidates.at(i).second,0);
+      update_Dvalue(candidates.at(i).first,candidates.at(i).second);
       swap(*(candidates.at(i).first),*(candidates.at(i).second));
     }
     return 1;
@@ -193,8 +222,7 @@ bool KL::max_cost(){
 
 void KL::update_temp(){
   for(auto iter = all_nodes.begin();iter!=all_nodes.end();++iter){
-    iter->second->temp_external=iter->second->external;
-    iter->second->temp_internal=iter->second->internal;
+    iter->second->d_value=iter->second->external - iter->second->internal;
     iter->second->temp_group=iter->second->group;
   }
   temp_group0=group0;
