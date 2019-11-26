@@ -15,11 +15,30 @@ int main(int argc,char **argv){
     if(!kl.max_cost()){break;}
   }*/
   kl.check();
+  kl.f();
+  cout<<endl;
+
+  kl.update_temp();
+  kl.max_cost();
+  kl.update_temp();
+  
+  kl.f();
+
+  //kl.check(0);
+  cout<<endl;
+  kl.max_cost();
+  kl.update_temp();
+  kl.f();
+
+
+
+  /*
   while(kl.max_cost()){
     kl.update_temp();
-    kl.check();
+    kl.check(0);
+    //kl.check();
     cout<<endl;
-  }
+  }*/
   kl.result();
   stop = clock();
   cout << "runtime: "<<double(stop - start) / CLOCKS_PER_SEC <<" s"<<endl;

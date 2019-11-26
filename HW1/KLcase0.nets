@@ -1,22 +1,106 @@
 numnets:5
 n0
 	o1
-	o4
+	o2
 n1
+	o1
+	o3
+n2
+	o1
+	o3
+n3
+ 	o1
+	o4
+n4
+ 	o1
+	o4
+n5
+ 	o1
+	o4
+n6
+	o1
+	o5
+n7
+	o1
+	o5
+n8
+	o1
+	o6
+n9
+	o1
+	o6
+n10
+	o1
+	o6
+n11
+	o1
+	o6
+n12
+	o2
+	o3
+n13
+	o2
+	o4
+n14
+	o2
+	o4
+n15
+	o2
+	o4
+n16
+	o2
+	o4
+n17
 	o2
 	o5
-n2
-	o0
+n18
+	o2
+	o5
+n19
+	o2
+	o6
+n20
+	o3
 	o4
-n3
-  o1
-  o3
-n4
-  o3
-  o5
-n5
-  o4
-  o5
-n6
-  o4
-  o3
+n21
+	o3
+	o4
+n22
+	o3
+	o4
+n23
+	o3
+	o5
+n24
+	o3
+	o5
+n25
+	o3
+	o6
+n26
+	o4
+	o5
+n27
+	o4
+	o5
+n28
+	o4
+	o5
+n29
+	o4
+	o5
+n30
+	o4
+	o6
+n31
+	o4
+	o6
+n32
+	o4
+	o6
+n33
+	o5
+	o6
+n34
+	o5
+	o6
