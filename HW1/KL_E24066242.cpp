@@ -166,9 +166,9 @@ pair<it,it> KL::priority(it new0,it new1, it old0, it old1){
   return p;
 }
 
-int KL::find_pair_to_swap(Node**n0,Node**n1){
+int KL::find_pair_to_swap(it*n0,it*n1){
   int max_cost = INT_MIN;
-  list<Node*>::iterator swapped_iter0,swapped_iter1;
+  it swapped_iter0,swapped_iter1;
 
   for(auto iter0=head0;iter0!=group0.end();++iter0){
     for(auto iter1=head1;iter1!=group1.end();++iter1){
@@ -196,15 +196,16 @@ int KL::find_pair_to_swap(Node**n0,Node**n1){
     }
   }
 
-  *n0=*swapped_iter0;
-  *n1=*swapped_iter1;
+
   if(head0==swapped_iter0){++head0;}
   if(head1==swapped_iter1){++head1;}
-  pre_swap(*n0,*n1);
+  pre_swap(*swapped_iter0,*swapped_iter1);
   group0.insert(group0.begin(),*swapped_iter0);
   group1.insert(group1.begin(),*swapped_iter1);
   group0.erase(swapped_iter0);
   group1.erase(swapped_iter1);
+  *n0=group0.begin();
+  *n1=group1.begin();
 
   return max_cost;
 }
@@ -231,11 +232,13 @@ void KL::pre_swap(Node*n0,Node*n1){
       iter->first->d_value-=2*(iter->second.second);
     }
   }
-n0->temp_group=!(n0->temp_group);
-n1->temp_group=!(n1->temp_group);
+  n0->temp_group=!(n0->temp_group);
+  n1->temp_group=!(n1->temp_group);
 }
 
-void KL::swap_nodes(Node*n0,Node*n1){
+void KL::swap_nodes(it n0it,it n1it){
+  Node* n0=*n0it;
+  Node* n1=*n1it;
   swap(n0->external,n0->internal);
   swap(n1->external,n1->internal);
 
@@ -255,6 +258,7 @@ void KL::swap_nodes(Node*n0,Node*n1){
       n->internal+=iter->second.second;
     }
   }
+
   for(auto iter=n1->all_edges.begin();iter!=n1->all_edges.end();++iter){
     Node* n=iter->first;
     if(n==n0){
@@ -274,28 +278,17 @@ void KL::swap_nodes(Node*n0,Node*n1){
   n0->group=!(n0->group);
   n1->group=!(n1->group);
 
-  for(auto iter = group0.begin();iter!=group0.end();++iter){
-    if(*iter==n0){
-      *iter=n1;
-      break;
-    }
-  }
+  swap(*n0it,*n1it);
 
-  for(auto iter = group1.begin();iter!=group1.end();++iter){
-    if(*iter==n1){
-      *iter=n0;
-      break;
-    }
-  }
 }
 
 bool KL::max_cost(){
 
   vector<int>g;
-  vector<pair<Node*,Node*>>candidates;
+  vector<pair<it,it>>candidates;
   for(int i=0;i< numnodes/2;++i){
-    Node* n0;
-    Node* n1;
+    it n0;
+    it n1;
 
     int max_cost = find_pair_to_swap(&n0,&n1);
     g.push_back(max_cost);

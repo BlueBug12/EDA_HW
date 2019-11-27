@@ -1,5 +1,3 @@
-#include <iostream>
-#include <string>
 #include <ctime>
 #include "KL_E24066242.h"
 using namespace std;

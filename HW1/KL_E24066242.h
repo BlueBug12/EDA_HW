@@ -16,9 +16,9 @@ public:
   ~KL();
   void read_file(const std::string filename);
   void write_file(const std::string filename,const double runtime);
-  int find_pair_to_swap(Node** n0 , Node** n1);
+  int find_pair_to_swap(it* n0 , it* n1);
   void pre_swap(Node* n0,Node* n1);
-  void swap_nodes(Node*n0,Node*n1);
+  void swap_nodes(it n0it,it n1it);
   bool max_cost();
   void update_new_group();
   void result();
