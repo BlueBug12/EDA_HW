@@ -8,7 +8,6 @@
 #include <list>
 #include <utility>
 #include <climits>
-#include <utility>
 #include <algorithm>
 struct Node;
 typedef std::list<Node*>::iterator it;
@@ -23,10 +22,8 @@ public:
   void swap_nodes(Node*n0,Node*n1);
   bool max_cost();
   void update_new_group();
-  void check(bool temp=1);
   void result();
   std::pair<it,it> priority(it new0,it new1, it old0, it old1);
-  void f();
 
 private:
   int numnodes;
@@ -37,8 +34,6 @@ private:
   std::list<Node*>group1;
   std::list<Node*>temp_group0;
   std::list<Node*>temp_group1;
-  it header0;
-  it header1;
 };
 
 #endif

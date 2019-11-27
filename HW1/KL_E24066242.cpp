@@ -6,7 +6,7 @@ struct Node{
   string name;
   bool group;//two groups
   bool temp_group;
-  map<Node*,pair<string,int>>all_edges;
+  map<Node*,pair<vector<string>,int>>all_edges;
   int external;
   int internal;
   int d_value;
@@ -16,6 +16,7 @@ KL::KL(const string benchmark){
   cost = 0;
   read_file(benchmark);
 }
+
 KL::~KL(){
   for(auto iter=all_nodes.begin();iter!=all_nodes.end();++iter){
     delete iter->second;
@@ -57,18 +58,21 @@ void KL::read_file(const string filename){
 
   string name1,name2;
   nets_file>>str;//avoid read in first line(numnets)
-  while (nets_file>>str) {
+  while (nets_file>>str){
     nets_file>>name1>>name2;
 
     Node* n1 = all_nodes[name1];
     Node* n2 = all_nodes[name2];
     if(n1->all_edges.find(n2)==n1->all_edges.end()){
       //weighted edge that has not existed before
-      pair<string,int>p(str,1);
+      vector<string>str_list{str};
+      pair<vector<string>,int>p(str_list,1);
       n1->all_edges[n2]=p;
       n2->all_edges[n1]=p;
     }
     else{
+      n1->all_edges[n2].first.push_back(str);
+      n2->all_edges[n1].first.push_back(str);
       ++(n1->all_edges[n2].second);
       ++(n2->all_edges[n1].second);
     }
@@ -103,14 +107,16 @@ void KL::write_file(const string filename,const double runtime){
   for(int i=0;i<result.size();++i){
     outfile<<'o'<<result.at(i)<<' ';
   }
-  outfile<<endl<<endl;
+  outfile<<';'<<endl<<endl;
   result.clear();
   vector<int>nets;
   for(auto iter = group1.begin();iter!=group1.end();++iter){
     result.push_back(stoi((*iter)->name.substr(1)));
     for(auto iter2=(*iter)->all_edges.begin();iter2!=(*iter)->all_edges.end();++iter2){
       if(iter2->first->group!=(*iter)->group){
-        nets.push_back(stoi(iter2->second.first.substr(1)));
+        for(int i=0;i<iter2->second.first.size();++i){
+          nets.push_back(stoi(iter2->second.first.at(i).substr(1)));
+        }
       }
     }
   }
@@ -120,12 +126,13 @@ void KL::write_file(const string filename,const double runtime){
   for(int i=0;i<result.size();++i){
     outfile<<'o'<<result.at(i)<<' ';
   }
-  outfile<<endl<<endl<<"cutset :"<<endl;;
+  outfile<<';'<<endl<<endl<<"cutset :"<<endl;;
 
   sort(nets.begin(),nets.end());
   for(int i=0;i<nets.size();++i){
     outfile<<'n'<<nets.at(i)<<' ';
   }
+  outfile<<';'<<endl;
 }
 
 pair<it,it> KL::priority(it new0,it new1, it old0, it old1){
@@ -154,20 +161,6 @@ pair<it,it> KL::priority(it new0,it new1, it old0, it old1){
     }
   }
   return p;
-}
-void KL::f(){
-  int num=0;
-  int cut1=0;
-  int cut2=0;
-  for(auto iter = group0.begin();iter!=group0.end();++iter){
-    cut1+=(*iter)->external;
-  }
-
-  for(auto iter = group1.begin();iter!=group1.end();++iter){
-    cut2+=(*iter)->external;
-  }
-
-  cout<<"cut1: "<<cut1<<" cut2: "<<cut2<<' '<<"cost: "<<cost<<endl;
 }
 
 int KL::find_pair_to_swap(Node**n0,Node**n1){
@@ -201,9 +194,6 @@ int KL::find_pair_to_swap(Node**n0,Node**n1){
   }
   *n0=*swapped_iter0;
   *n1=*swapped_iter1;
-
-  //cout<<"swap "<<(*n0)->name<<" and "<<(*n1)->name<<endl;
-  //cout<<"max cost reduce: "<<max_cost<<endl;
   pre_swap(*n0,*n1);
 
   temp_group0.erase(swapped_iter0);
@@ -276,11 +266,8 @@ void KL::swap_nodes(Node*n0,Node*n1){
   n0->group=!(n0->group);
   n1->group=!(n1->group);
 
-  list<Node*>::iterator pointer0=group0.end();
-  list<Node*>::iterator pointer1=group1.end();
   for(auto iter = group0.begin();iter!=group0.end();++iter){
     if(*iter==n0){
-      pointer0=iter;
       *iter=n1;
       break;
     }
@@ -288,12 +275,10 @@ void KL::swap_nodes(Node*n0,Node*n1){
 
   for(auto iter = group1.begin();iter!=group1.end();++iter){
     if(*iter==n1){
-      pointer0=iter;
       *iter=n0;
       break;
     }
   }
-
 }
 
 bool KL::max_cost(){
@@ -320,14 +305,9 @@ bool KL::max_cost(){
     }
   }
   if(max_partial_sum>0){
-    //cout<<"cost reduce: "<<max_partial_sum<<endl;
-    //cout<<endl;
     cost -= max_partial_sum;
-
     for(int i=0;i<index;++i){
-      //cout<<"actually swap: "<<candidates.at(i).first->name<<' '<<candidates.at(i).second->name<<endl;
       swap_nodes(candidates.at(i).first,candidates.at(i).second);
-
     }
     return 1;
   }
@@ -341,29 +321,6 @@ void KL::update_new_group(){
   }
   temp_group0=group0;
   temp_group1=group1;
-}
-
-void KL::check(bool temp){
-  if(!temp){
-    cout<<"Group0: "<<endl;
-    for(auto iter = group0.begin();iter!=group0.end();++iter){
-      cout<<(*iter)->name<<' '<<(*iter)->group<<' '<<(*iter)->internal<<' '<<(*iter)->external<<' '<<(*iter)->d_value<<endl;
-    }
-    cout<<"Group1 "<<endl;
-    for(auto iter = group1.begin();iter!=group1.end();++iter){
-      cout<<(*iter)->name<<' '<<(*iter)->group<<' '<<(*iter)->internal<<' '<<(*iter)->external<<' '<<(*iter)->d_value<<endl;
-    }
-  }
-  else{
-    cout<<"temp_Group0: "<<endl;
-    for(auto iter = temp_group0.begin();iter!=temp_group0.end();++iter){
-      cout<<(*iter)->name<<' '<<(*iter)->temp_group<<' '<<(*iter)->internal<<' '<<(*iter)->external<<' '<<(*iter)->d_value<<endl;
-    }
-    cout<<"temp_Group1 "<<endl;
-    for(auto iter = temp_group1.begin();iter!=temp_group1.end();++iter){
-      cout<<(*iter)->name<<' '<<(*iter)->temp_group<<' '<<(*iter)->internal<<' '<<(*iter)->external<<' '<<(*iter)->d_value<<endl;
-    }
-  }
 }
 
 void KL::result(){
