@@ -9,13 +9,15 @@
 #include <utility>
 #include <climits>
 #include <utility>
+#include <algorithm>
 struct Node;
 typedef std::list<Node*>::iterator it;
 class KL{
 public:
-  KL(char* benchmark);
+  KL(const std::string benchmark);
   ~KL();
-  void read_file(char* benchmark);
+  void read_file(const std::string filename);
+  void write_file(const std::string filename,const double runtime);
   int find_pair_to_swap(Node** n0 , Node** n1);
   void pre_swap(Node* n0,Node* n1);
   void swap_nodes(Node*n0,Node*n1);
@@ -29,6 +31,7 @@ public:
 private:
   int numnodes;
   int cost;
+  int first_cost;
   std::map<std::string,Node*>all_nodes;
   std::list<Node*>group0;
   std::list<Node*>group1;
