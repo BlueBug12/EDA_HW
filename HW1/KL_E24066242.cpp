@@ -144,7 +144,7 @@ pair<it,it> KL::priority(it new0,it new1, it old0, it old1){
     p.second=old1;
   }
   else{
-    if(new_0<old_0){
+    if(new_1<old_1){
       p.first=new0;
       p.second=new1;
     }

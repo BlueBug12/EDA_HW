@@ -1,0 +1,12 @@
+runtime : 0 s
+first_cutsize : 22
+final_cutsize : 18
+
+G1 :
+o1 o3 o6 
+
+G2 :
+o2 o4 o5 
+
+cutset :
+n0 n3 n6 n12 n19 n20 n23 n30 n33 
