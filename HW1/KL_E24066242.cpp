@@ -130,19 +130,18 @@ void KL::f(){
   cout<<"cut1: "<<cut1<<" cut2: "<<cut2<<' '<<"cost: "<<cost<<endl;
 }
 int KL::find_pair_to_swap(Node**n0,Node**n1){
-  //check();
   int max_cost = INT_MIN;
   list<Node*>::iterator swapped_iter0,swapped_iter1;
-  //if(temp_group0.size()!=3){cout<<"fuckkkkkkkkkkkkkkkk"<<endl;}
   for(auto iter0=temp_group0.begin();iter0!=temp_group0.end();++iter0){
     for(auto iter1=temp_group1.begin();iter1!=temp_group1.end();++iter1){
 
       int g = (*iter0)->d_value+(*iter1)->d_value;
+      int test =g;
       auto target=(*iter0)->all_edges.find(*iter1);
       if(target!=(*iter0)->all_edges.end()){
         g-=2*(target->second);//if two nodes are connected
       }
-      //cout<<"g for "<<(*iter0)->name<<(*iter1)->name<<' '<<g<<endl;
+      //cout<<"g for "<<(*iter0)->name<<(*iter1)->name<<' '<<g<<" pre "<<test<<endl;
       if(g==max_cost){
         //cout<<"compare"<<(*iter0)->name<<(*iter1)->name<<' '<<(*swapped_iter0)->name<<(*swapped_iter1)->name<<endl;
         pair<it,it>p=priority(iter0,iter1,swapped_iter0,swapped_iter1);
@@ -161,23 +160,22 @@ int KL::find_pair_to_swap(Node**n0,Node**n1){
   }
   *n0=*swapped_iter0;
   *n1=*swapped_iter1;
+
   cout<<"swap "<<(*n0)->name<<" and "<<(*n1)->name<<endl;
   cout<<"max cost reduce: "<<max_cost<<endl;
-  update_temp_Dvalue(*n0,*n1);
-  //check();
-  //check(1);
+  pre_swap(*n0,*n1);
+
   temp_group0.erase(swapped_iter0);
   temp_group1.erase(swapped_iter1);
   return max_cost;
 }
 
-void KL::update_temp_Dvalue(Node*n0,Node*n1){
+void KL::pre_swap(Node*n0,Node*n1){
   //don't change external and internal value,just update d_value temporarily
   n0->d_value=-n0->d_value;
   n1->d_value=-n1->d_value;
   //update the d_value and group of nodes that connected with n0
   for(auto iter=n0->all_edges.begin();iter!=n0->all_edges.end();++iter){
-    //if(iter->first==n1){n0->d_value+=2;continue;}
     if(iter->first->temp_group==n0->temp_group){
       iter->first->d_value+=2*(iter->second);
     }
@@ -187,7 +185,6 @@ void KL::update_temp_Dvalue(Node*n0,Node*n1){
   }
   //update the d_value and group of nodes that connected with n1
   for(auto iter=n1->all_edges.begin();iter!=n1->all_edges.end();++iter){
-    //if(iter->first==n0){n1->d_value+=2;continue;}
     if(iter->first->temp_group==n1->temp_group){
       iter->first->d_value+=2*(iter->second);
     }
@@ -199,7 +196,7 @@ n0->temp_group=!(n0->temp_group);
 n1->temp_group=!(n1->temp_group);
 }
 
-void KL::update_Dvalue(Node*n0,Node*n1){
+void KL::swap_nodes(Node*n0,Node*n1){
   swap(n0->external,n0->internal);
   swap(n1->external,n1->internal);
 
@@ -237,6 +234,25 @@ void KL::update_Dvalue(Node*n0,Node*n1){
   }
   n0->group=!(n0->group);
   n1->group=!(n1->group);
+
+  list<Node*>::iterator pointer0=group0.end();
+  list<Node*>::iterator pointer1=group1.end();
+  for(auto iter = group0.begin();iter!=group0.end();++iter){
+    if(*iter==n0){
+      pointer0=iter;
+      *iter=n1;
+      break;
+    }
+  }
+
+  for(auto iter = group1.begin();iter!=group1.end();++iter){
+    if(*iter==n1){
+      pointer0=iter;
+      *iter=n0;
+      break;
+    }
+  }
+
 }
 
 bool KL::max_cost(){
@@ -268,10 +284,8 @@ bool KL::max_cost(){
     cost -= max_partial_sum;
 
     for(int i=0;i<index;++i){
-      //cout<<candidates.at(i).first<<endl;
       cout<<"actually swap: "<<candidates.at(i).first->name<<' '<<candidates.at(i).second->name<<endl;
-      update_Dvalue(candidates.at(i).first,candidates.at(i).second);
-      swap(*(candidates.at(i).first),*(candidates.at(i).second));
+      swap_nodes(candidates.at(i).first,candidates.at(i).second);
 
     }
     return 1;
@@ -279,7 +293,7 @@ bool KL::max_cost(){
   else{return 0;}
 }
 
-void KL::update_temp(){
+void KL::update_new_group(){
   for(auto iter = all_nodes.begin();iter!=all_nodes.end();++iter){
     iter->second->d_value=iter->second->external - iter->second->internal;
     iter->second->temp_group=iter->second->group;
@@ -289,11 +303,6 @@ void KL::update_temp(){
 }
 
 void KL::check(bool temp){
-  /*
-  for(auto iter = all_nodes.begin();iter!=all_nodes.end();++iter){
-    Node* n=iter->second;
-    cout<<n->name<<' '<<n->internal<<' '<<n->external<<endl;
-  }*/
   if(!temp){
     cout<<"Group0: "<<endl;
     for(auto iter = group0.begin();iter!=group0.end();++iter){
