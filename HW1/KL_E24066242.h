@@ -6,7 +6,6 @@
 #include <string>
 #include <map>
 #include <list>
-#include <utility>
 #include <climits>
 #include <algorithm>
 struct Node;
@@ -32,8 +31,8 @@ private:
   std::map<std::string,Node*>all_nodes;
   std::list<Node*>group0;
   std::list<Node*>group1;
-  std::list<Node*>temp_group0;
-  std::list<Node*>temp_group1;
+  it head0;
+  it head1;
 };
 
 #endif

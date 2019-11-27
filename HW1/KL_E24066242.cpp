@@ -44,17 +44,19 @@ void KL::read_file(const string filename){
       n->group = 0;//first group(first half)
       n->temp_group = 0;
       group0.push_back(n);
-      temp_group0.push_back(n);
+      //temp_group0.push_back(n);
     }
     else{
       n->group = 1;//second group(last half)
       n->temp_group = 1;
       group1.push_back(n);
-      temp_group1.push_back(n);
+      //temp_group1.push_back(n);
     }
     all_nodes[str] = n;
     ++counter;
   }
+  head0=group0.begin();
+  head1=group1.begin();
 
   string name1,name2;
   nets_file>>str;//avoid read in first line(numnets)
@@ -136,6 +138,7 @@ void KL::write_file(const string filename,const double runtime){
 }
 
 pair<it,it> KL::priority(it new0,it new1, it old0, it old1){
+
   int new_0 = stoi(((*new0)->name).substr(1));
   int new_1 = stoi(((*new1)->name).substr(1));
   int old_0 = stoi(((*old0)->name).substr(1));
@@ -166,9 +169,9 @@ pair<it,it> KL::priority(it new0,it new1, it old0, it old1){
 int KL::find_pair_to_swap(Node**n0,Node**n1){
   int max_cost = INT_MIN;
   list<Node*>::iterator swapped_iter0,swapped_iter1;
-  for(auto iter0=temp_group0.begin();iter0!=temp_group0.end();++iter0){
-    for(auto iter1=temp_group1.begin();iter1!=temp_group1.end();++iter1){
 
+  for(auto iter0=head0;iter0!=group0.end();++iter0){
+    for(auto iter1=head1;iter1!=group1.end();++iter1){
       int g = (*iter0)->d_value+(*iter1)->d_value;
       int test =g;
       auto target=(*iter0)->all_edges.find(*iter1);
@@ -192,12 +195,17 @@ int KL::find_pair_to_swap(Node**n0,Node**n1){
       }
     }
   }
+
   *n0=*swapped_iter0;
   *n1=*swapped_iter1;
+  if(head0==swapped_iter0){++head0;}
+  if(head1==swapped_iter1){++head1;}
   pre_swap(*n0,*n1);
+  group0.insert(group0.begin(),*swapped_iter0);
+  group1.insert(group1.begin(),*swapped_iter1);
+  group0.erase(swapped_iter0);
+  group1.erase(swapped_iter1);
 
-  temp_group0.erase(swapped_iter0);
-  temp_group1.erase(swapped_iter1);
   return max_cost;
 }
 
@@ -288,15 +296,16 @@ bool KL::max_cost(){
   for(int i=0;i< numnodes/2;++i){
     Node* n0;
     Node* n1;
-    int max_cost = find_pair_to_swap(&n0,&n1);
-    //cout<<n1->name;
 
+    int max_cost = find_pair_to_swap(&n0,&n1);
     g.push_back(max_cost);
     candidates.push_back(make_pair(n0,n1));
   }
+
   int max_partial_sum = 0;
   int sum = 0;
   int index=0;
+
   for(int i=0;i<g.size();++i){
     sum+=g.at(i);
     if(sum>max_partial_sum){
@@ -304,6 +313,7 @@ bool KL::max_cost(){
       index=i+1;
     }
   }
+
   if(max_partial_sum>0){
     cost -= max_partial_sum;
     for(int i=0;i<index;++i){
@@ -319,8 +329,8 @@ void KL::update_new_group(){
     iter->second->d_value=iter->second->external - iter->second->internal;
     iter->second->temp_group=iter->second->group;
   }
-  temp_group0=group0;
-  temp_group1=group1;
+  head0=group0.begin();
+  head1=group1.begin();
 }
 
 void KL::result(){
