@@ -40,7 +40,6 @@ public:
     root->to=NULL;
     ports[o_port]=root;
     cost=0;
-    size=0;
   }
   ~Tree(){
     node* start=root->from;
@@ -65,6 +64,7 @@ public:
       }
       delete start;
     }
+    //cout<<"delete "<<name<<endl;
   }
 
 
@@ -180,8 +180,6 @@ public:
       build_port(i_port2,n,0);
     else
       n->right_child=NULL;
-
-    ++size;
   }
 
   void set_cost(string c){cost=stoi(c);}
@@ -193,7 +191,6 @@ private:
   edge* root;
   vector<edge*>leaves;
   int cost;
-  int size;
   string name;
   map<string,edge*>ports;
 };
@@ -328,9 +325,9 @@ int main(int argc, char *argv[]){
   }
 
   cout<<"Mincost of "<<circuit_file<<" : "<<mincost(target->root_edge(),all_patterns)<<endl;
-  target->~Tree();
+  delete target;
   for(int i=0;i<all_patterns.size();++i){
-    all_patterns.at(i)->~Tree();
+    delete all_patterns.at(i);
   }
   return 0;
 }
